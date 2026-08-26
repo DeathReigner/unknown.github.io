@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>¿?</title>
+<style>
+  :root{
+    /* Pantalla de bloqueo: azul cielo, azul pastel y blanco */
+    --sky: #6fb7e8;
+    --sky-mid: #9dd3f5;
+    --sky-light: #cfeaf9;
+    --pastel: #eef8fd;
+    --white: #ffffff;
+    --ink: #244056;
+    --ink-soft: #4d7089;
+
+    /* Pantalla de celebración/mensaje: grises y negros */
+    --gs-black: #0d0d0d;
+    --gs-dark: #232323;
+    --gs-mid: #4a4a4a;
+    --gs-light: #9a9a9a;
+    --gs-pale: #d9d9d9;
+    --gs-white: #f2f2f2;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height:100%;
+    width:100%;
+    overflow:hidden;
+    background: var(--sky);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color:#eaeaea;
+  }
+
+  /* ===================== FONDO PANTALLA DE BLOQUEO ===================== */
+  #bg {
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 45%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.3), transparent 50%),
+      linear-gradient(160deg, var(--sky) 0%, var(--sky-mid) 40%, var(--sky-light) 70%, var(--pastel) 100%);
+    background-size: 200% 200%;
+    animation: bgShift 14s ease-in-out infinite;
+  }
+
+  @keyframes bgShift {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+  }
+
+  canvas#particles {
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  /* ===================== CONTENEDORES PRINCIPALES ===================== */
+  .screen {
+    position:fixed;
+    inset:0;
+    z-index:5;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+    text-align:center;
+  }
+
+  #celebration { display:none; overflow-y:auto; }
+
+  /* ===================== PANTALLA DE BLOQUEO ===================== */
+  .lock-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 18px;
+    animation: pulseLock 2.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(36,64,86,0.35));
+  }
+
+  @keyframes pulseLock {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  .lock-title {
+    font-size: clamp(20px, 5.6vw, 30px);
+    letter-spacing: 1.5px;
+    color: var(--ink);
+    text-shadow: 0 2px 10px rgba(255,255,255,0.6);
+    margin-bottom: 10px;
+    font-weight:bold;
+    max-width: 340px;
+  }
+
+  .lock-sub {
+    font-size: clamp(13px, 3.6vw, 15px);
+    color: var(--ink-soft);
+    margin-bottom: 32px;
+    max-width: 320px;
+    line-height:1.5;
+    opacity:0.95;
+  }
+
+  .name-input {
+    width: min(280px, 80vw);
+    padding: 14px 18px;
+    font-size: 17px;
+    text-align:center;
+    background: rgba(255,255,255,0.55);
+    border: 1.5px solid var(--sky);
+    border-radius: 30px;
+    color: var(--ink);
+    outline:none;
+    box-shadow: 0 0 20px rgba(111,183,232,0.15) inset;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    letter-spacing:1px;
+  }
+
+  .name-input::placeholder { color: #7fa2b8; }
+
+  .name-input:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 20px rgba(111,183,232,0.4);
+  }
+
+  .name-input.shake {
+    animation: shake 0.45s ease;
+    border-color: var(--ink);
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .unlock-btn {
+    margin-top: 20px;
+    padding: 12px 38px;
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--sky), var(--sky-mid));
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 30px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(111,183,232,0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+  }
+
+  .unlock-btn:active { transform: scale(0.95); }
+
+  .unlock-btn:hover {
+    box-shadow: 0 8px 24px rgba(111,183,232,0.7);
+  }
+
+  .error-msg {
+    margin-top: 16px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    height: 18px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .error-msg.show { opacity: 1; }
+
+  /* ===================== DECORACIÓN ANIMADA — PANTALLA DE BLOQUEO ===================== */
+  .clouds-layer {
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .cloud {
+    position:absolute;
+    background:#ffffff;
+    border-radius:50px;
+    opacity:0.75;
+  }
+  .cloud::before, .cloud::after {
+    content:"";
+    position:absolute;
+    background:#ffffff;
+    border-radius:50%;
+  }
+  .cloud-a { width:70px; height:26px; top:10%; animation: driftCloud 26s linear infinite; }
+  .cloud-a::before { width:36px; height:36px; top:-16px; left:8px; }
+  .cloud-a::after { width:26px; height:26px; top:-10px; left:36px; }
+
+  .cloud-b { width:90px; height:30px; top:18%; animation: driftCloud 34s linear infinite; animation-delay: -12s; opacity:0.6; }
+  .cloud-b::before { width:40px; height:40px; top:-18px; left:12px; }
+  .cloud-b::after { width:30px; height:30px; top:-12px; left:48px; }
+
+  .cloud-c { width:56px; height:20px; top:8%; animation: driftCloud 20s linear infinite; animation-delay: -6s; opacity:0.5; }
+  .cloud-c::before { width:26px; height:26px; top:-12px; left:6px; }
+  .cloud-c::after { width:20px; height:20px; top:-8px; left:26px; }
+
+  @keyframes driftCloud {
+    from { transform: translateX(-140px); }
+    to   { transform: translateX(calc(100vw + 140px)); }
+  }
+
+  .sparkle {
+    position:absolute;
+    width:6px;
+    height:6px;
+    background:#ffffff;
+    border-radius:50%;
+    opacity:0;
+    animation: twinkle 3s ease-in-out infinite;
+    box-shadow: 0 0 6px 2px rgba(255,255,255,0.7);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity:0; transform: scale(0.6); }
+    50% { opacity:1; transform: scale(1.1); }
+  }
+
+  .lock-character {
+    position:absolute;
+    z-index:1;
+    pointer-events:none;
+    height:auto;
+    display:block;
+    top:-100px;
+    animation: fallRotate linear infinite;
+  }
+
+  .fall-1 { left:6%;  width:58px; animation-duration:9s;  animation-delay:0s;   }
+  .fall-2 { left:32%; width:66px; animation-duration:11s; animation-delay:-4s;  }
+  .fall-3 { left:60%; width:52px; animation-duration:8.5s; animation-delay:-6s; }
+  .fall-4 { left:82%; width:62px; animation-duration:12s; animation-delay:-2s;  }
+
+  @keyframes fallRotate {
+    0%   { transform: translateY(0) rotate(0deg); opacity:0; }
+    6%   { opacity:1; }
+    94%  { opacity:1; }
+    100% { transform: translateY(calc(100vh + 160px)) rotate(360deg); opacity:0; }
+  }
+
+  /* ===================== DECORACIÓN ANIMADA — PANTALLA DE MENSAJE ===================== */
+  .orbs-layer {
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .orb {
+    position:absolute;
+    border-radius:50%;
+    filter: blur(26px);
+    opacity:0.28;
+    animation: floatOrb ease-in-out infinite;
+  }
+
+  .orb-1 { width:180px; height:180px; background:#8a8a8a; top:6%; left:-8%; animation-duration:9s; }
+  .orb-2 { width:220px; height:220px; background:#5a5a5a; top:40%; right:-10%; animation-duration:11s; animation-delay:-3s; }
+  .orb-3 { width:140px; height:140px; background:#c9c9c9; bottom:14%; left:-6%; animation-duration:8s; animation-delay:-1.5s; }
+  .orb-4 { width:160px; height:160px; background:#707070; bottom:2%; right:6%; animation-duration:10s; animation-delay:-5s; }
+
+  @keyframes floatOrb {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(24px,-34px) scale(1.08); }
+  }
+
+  /* ===================== PANTALLA DE CELEBRACIÓN (GRISES Y NEGROS) ===================== */
+  #celebration {
+    justify-content: flex-start;
+    padding-top: 50px;
+    padding-bottom: 60px;
+    background: linear-gradient(180deg, var(--gs-black) 0%, var(--gs-dark) 35%, #333333 70%, var(--gs-mid) 100%);
+  }
+
+  .content-wrap {
+    max-width: 480px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
+    z-index:3;
+  }
+
+  .main-title {
+    font-size: clamp(28px, 8.5vw, 44px);
+    font-weight: bold;
+    color: var(--gs-white);
+    text-shadow: 0 2px 14px rgba(0,0,0,0.6);
+    margin: 8px 0 4px;
+    letter-spacing: 1px;
+    animation: fadeInUp 1s ease;
+  }
+
+  .subtitle {
+    font-size: clamp(15px, 4vw, 18px);
+    color: var(--gs-light);
+    margin-bottom: 26px;
+    letter-spacing: 0.5px;
+    animation: fadeInUp 1.2s ease;
+  }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gs-light), transparent);
+    margin: 16px 0;
+    animation: fadeInUp 1.3s ease;
+  }
+
+  .message-card {
+    background: rgba(25,25,25,0.7);
+    border: 1px solid rgba(200,200,200,0.15);
+    border-radius: 22px;
+    padding: 28px 24px;
+    margin: 10px 0 30px;
+    box-shadow: 0 10px 34px rgba(0,0,0,0.5);
+    animation: fadeInUp 1.5s ease;
+    backdrop-filter: blur(6px);
+    text-align: left;
+  }
+
+  .message-card p {
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: var(--gs-pale);
+  }
+
+  .message-card p + p { margin-top: 16px; }
+
+  .signature {
+    margin-top: 20px;
+    text-align: right;
+    font-style: italic;
+    color: var(--gs-white);
+    font-weight: bold;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===================== SECCIÓN RULETA ===================== */
+  .wheel-section {
+    width: 100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom: 34px;
+    animation: fadeInUp 1.7s ease;
+  }
+
+  .wheel-title {
+    font-size: clamp(19px, 5vw, 24px);
+    color: var(--gs-white);
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .wheel-caption {
+    font-size: 13px;
+    color: var(--gs-light);
+    margin-bottom: 20px;
+  }
+
+  .wheel-wrap {
+    position: relative;
+    width: min(260px, 70vw);
+    height: min(260px, 70vw);
+    margin-bottom: 22px;
+  }
+
+  .wheel-pointer {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 22px solid var(--gs-white);
+    z-index: 4;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+  }
+
+  .wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    border: 6px solid var(--gs-white);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.55), 0 0 0 2px rgba(255,255,255,0.08);
+    background: conic-gradient(
+      #3a3a3a 0deg 90deg,
+      #565656 90deg 180deg,
+      #737373 180deg 270deg,
+      #949494 270deg 360deg
+    );
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  }
+
+  .wheel-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 82px;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: bold;
+    line-height: 1.25;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 4px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+
+  .wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22px;
+    height: 22px;
+    background: var(--gs-white);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    z-index: 3;
+  }
+
+  .spin-btn {
+    padding: 12px 34px;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--gs-mid), var(--gs-dark));
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 30px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    transition: transform 0.2s ease;
+    font-family: inherit;
+  }
+
+  .spin-btn:active { transform: scale(0.95); }
+  .spin-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .wheel-result {
+    margin-top: 18px;
+    min-height: 26px;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--gs-white);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .wheel-result.show { opacity: 1; }
+
+  .footer-note {
+    font-size: 13px;
+    color: var(--gs-light);
+    margin-top: 6px;
+    animation: fadeInUp 2s ease;
+    font-style: italic;
+  }
+
+  /* Scrollbar oculta en móviles */
+  ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+  @media (max-width: 380px) {
+    .message-card { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<canvas id="particles"></canvas>
+
+<!-- ===================== PANTALLA DE BLOQUEO ===================== -->
+<div class="screen" id="lockScreen">
+
+  <div class="clouds-layer">
+    <div class="cloud cloud-a" style="left:10%;"></div>
+    <div class="cloud cloud-b" style="left:55%;"></div>
+    <div class="cloud cloud-c" style="left:75%;"></div>
+    <div class="sparkle" style="top:14%; left:20%; animation-delay:0s;"></div>
+    <div class="sparkle" style="top:24%; left:70%; animation-delay:1s;"></div>
+    <div class="sparkle" style="top:34%; left:40%; animation-delay:2s;"></div>
+    <div class="sparkle" style="top:60%; left:85%; animation-delay:0.5s;"></div>
+    <div class="sparkle" style="top:70%; left:15%; animation-delay:1.6s;"></div>
+  </div>
+
+  <!-- Imágenes cayendo: reemplaza cada src por la ruta/nombre real de tu imagen -->
+  <img class="lock-character fall-1" src="1.png" alt="Personaje 1">
+  <img class="lock-character fall-2" src="2.png" alt="Personaje 2">
+  <img class="lock-character fall-3" src="3.png" alt="Personaje 3">
+  <img class="lock-character fall-4" src="4.png" alt="Personaje 4">
+
+  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="10" width="16" height="10" rx="2" stroke="#244056" stroke-width="1.5"/>
+    <path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="#244056" stroke-width="1.5"/>
+    <circle cx="12" cy="15" r="1.5" fill="#244056"/>
+  </svg>
+  <div class="lock-title">¿Y esto?</div>
+  <div class="lock-sub">Escribe uno de tus nombres (o apodos) para desbloquear.</div>
+  <input type="text" id="nameInput" class="name-input" placeholder="Escribe aquí..." autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button class="unlock-btn" id="unlockBtn">Desbloquear</button>
+  <div class="error-msg" id="errorMsg">Eh... no es correcto.</div>
+</div>
+
+<!-- ===================== PANTALLA DE CELEBRACIÓN ===================== -->
+<div class="screen" id="celebration">
+
+  <div class="orbs-layer">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+  </div>
+
+  <div class="content-wrap">
+
+    <div class="main-title">PRIMER MES</div>
+    <div class="subtitle">Feliz día, mi amor</div>
+    <div class="divider"></div>
+
+    <div class="message-card">
+      <p>Sé que un mes puede parecer poco tiempo. Quizá para algunas personas no sea algo tan importante como para celebrarlo, y tal vez hasta pueda parecer un poco tonto darle tanta importancia. Soy nuevo en todo esto y, siendo completamente sincero, todavía no tengo ni la menor idea de cómo funcionan muchas de estas cosas, especialmente los aniversarios y la manera "correcta" de celebrarlos.</p>
+
+      <p>Nunca he sido una persona que celebre demasiado. Te lo he dicho varias veces: prefiero quedarme en silencio, guardar el momento para mí y simplemente sentirme feliz por lo que está pasando, antes que organizar algo o hacer una gran celebración. Pero contigo algo cambió.</p>
+
+      <p>Por alguna razón, muchas cosas contigo sí quiero celebrarlas. Quiero detenerme un momento, mirar y disfrutar todo lo que ha pasado, aunque haya sido apenas un mes, porque para mí ha significado muchísimo más de lo que podría explicar fácilmente con palabras.</p>
+
+      <p>Desde que llegaste a mi vida, algo cambió para bien dentro de mí, mis días son más relajados y felices, y ahora cada día tiene algo que me hace ilusión. Tu compañía y ayuda se han convertido en 2 de mis motores principales, en una de esas cosas que hacen que incluso los días más pesados se sientan un poco más ligeros. Hay una parte de mí que simplemente piensa: "Tengo que seguir, porque quiero volver a verla". Y quizás no te das cuenta de lo importante que eres para mí cuando digo algo así, pero genuinamente lo eres.</p>
+
+      <p>Eres mi primera pareja, la primera persona con la que vivo algo así, mi primera vez descubriendo todas estas emociones, todos estos momentos, todos estos sentimientos que antes solamente podía imaginar. Y precisamente porque eres la primera, muchas veces no sé qué hacer, qué decir o cuál es la manera correcta de expresar lo que siento. Puede que todavía esté aprendiendo, que cometa errores de los cuáles siempre me arrepiento y que muchas cosas me parezcan completamente nuevas, pero hay algo de lo que sí estoy seguro: quiero aprender y seguir aprendiendo contigo.</p>
+
+      <p>No exagero cuando digo que pienso en ti todos los días. A cualquier hora, en cualquier momento, por cualquier razón, de alguna manera terminas apareciendo en mi cabeza. A veces es algo tan simple como recordar una conversación, una palabra tuya, una mirada o alguna tontería que hicimos juntos. Incluso en los gestos o movimientos de otras personas llego a verte, y eso me hace pensar en cuándo volveré a verte.</p>
+
+      <p>Y sí, también me encanta verte en las fotos que tengo de ti. Cada vez que encuentro alguna en mi galería me hace feliz, por eso te dije lo de la foto el otro día. No quiero que suene superficial ni que parezca que solamente hablo de tu apariencia; es simplemente que me encanta admirarte. Me pareces increíblemente hermosa, y me encanta poder guardar pequeños fragmentos de ti en mi teléfono para volver a mirarlos cuando quiera. Hay algo muy bonito en poder ver una foto tuya y sentir inmediatamente una sonrisa.</p>
+
+      <p>Por eso también hice esta página web para ti.</p>
+
+      <p>Quería darte algo que fuera un poco más personal, algo que no fuera simplemente un mensaje escrito y enviado. Quería plasmar una parte de mí, de lo que sé hacer y del tiempo y esfuerzo que estoy dispuesto a dedicarte, para convertirlos en algo que pudiera quedar ahí y que tú pudieras visitar cuando quisieras.</p>
+
+      <p>Puede que para alguien más sea solamente una página de internet, pero para mí significa mucho más. Es una pequeña forma de decirte: "Pensé en ti, trabajé en esto pensando en ti y quise crear algo especialmente para ti".</p>
+
+      <p>Quizá todavía llevemos solamente un mes, pero este primer mes ya ocupa un lugar muy especial en mi corazón, no por la celebración en sí, sino por ti y por compartir tu vida y tu cariño conmigo. No sé qué nos depare el futuro ni cuántas cosas nos falten por descubrir juntos. Sé que vendrán todo tipo de momentos, tanto buenos como malos, pero también sé que lograremos superar cada uno de ellos y seguir adelante. Y me hace muy feliz que seas tú la persona con la que estoy viviendo todo esto.</p>
+
+      <p>Gracias por este primer mes. Gracias por estar conmigo, por compartir tu tiempo conmigo, por dejarme conocerte cada día un poco más y por hacerme sentir algo tan bonito.</p>
+
+      <p>Y aunque todavía estoy aprendiendo cómo funcionan estas cosas y cómo se supone que se celebra esto, creo que ya entendí algo importante: cuando se trata de ti, quiero celebrar cada momento que podamos tener juntos.</p>
+
+      <p>Feliz primer mes, mi niña hermosa.</p>
+
+      <p class="signature">Amy, Te amo muchísimo, demasiado, más de lo que crees. 28/08/2026</p>
+    </div>
+
+    <div class="footer-note">— Con todo mi amor, Joshua —</div>
+  </div>
+</div>
+
+<script>
+  const VALID_NAMES = ["marion", "selene", "amy", "pichula", "selenita", "salmon"];
+
+  const nameInput = document.getElementById('nameInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const lockScreen = document.getElementById('lockScreen');
+  const celebration = document.getElementById('celebration');
+
+  function normalize(str) {
+    return str
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function tryUnlock() {
+    const val = normalize(nameInput.value);
+    if (VALID_NAMES.includes(val)) {
+      unlock();
+    } else {
+      nameInput.classList.remove('shake');
+      void nameInput.offsetWidth;
+      nameInput.classList.add('shake');
+      errorMsg.classList.add('show');
+      setTimeout(() => errorMsg.classList.remove('show'), 2200);
+    }
+  }
+
+  function unlock() {
+    lockScreen.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    lockScreen.style.opacity = '0';
+    lockScreen.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+      lockScreen.style.display = 'none';
+      celebration.style.display = 'flex';
+      celebration.style.animation = 'fadeInUp 0.8s ease';
+      positionWheelLabels();
+    }, 600);
+  }
+
+  unlockBtn.addEventListener('click', tryUnlock);
+  nameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') tryUnlock();
+  });
+
+  /* ================== RULETA "¿QUÉ HAREMOS HOY?" ================== */
+  const wheel = document.getElementById('wheel');
+  const wheelWrap = document.getElementById('wheelWrap');
+  const spinBtn = document.getElementById('spinBtn');
+  const wheelResult = document.getElementById('wheelResult');
+  const labelEls = document.querySelectorAll('.wheel-label');
+
+  // Segmentos en orden, cada uno cubre 90deg, empezando en 0deg (arriba) en sentido horario,
+  // igual que el conic-gradient del CSS.
+  const options = ["Llamada", "Lo que tú quieras y desees", "Jugar algo", "Te doy un regalo"];
+  let currentRotation = 0;
+  let spinning = false;
+
+  // Coloca cada etiqueta exactamente en el centro angular de su segmento,
+  // usando trigonometría real en vez de transforms encadenados (evita el
+  // desfase que hacía que el texto se saliera de su sección).
+  function positionWheelLabels() {
+    const size = wheelWrap.clientWidth;
+    if (!size) return;
+    const radius = size * 0.30; // qué tan lejos del centro se coloca el texto
+    labelEls.forEach(label => {
+      const index = parseInt(label.dataset.index, 10);
+      const angleDeg = index * 90 + 45; // centro del segmento, medido en sentido horario desde arriba
+      const angleRad = (angleDeg * Math.PI) / 180;
+      const x = radius * Math.sin(angleRad);
+      const y = -radius * Math.cos(angleRad);
+      label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+    });
+  }
+
+  window.addEventListener('resize', positionWheelLabels);
+  positionWheelLabels();
+
+  spinBtn.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    wheelResult.classList.remove('show');
+
+    const index = Math.floor(Math.random() * options.length);
+    // Ángulo (medido en sentido horario desde arriba) del centro del segmento elegido.
+    const segmentCenter = index * 90 + 45;
+    // Rotación necesaria para que ese centro quede exactamente bajo el puntero (arriba, 0deg).
+    const targetWithinTurn = (360 - segmentCenter) % 360;
+    const extraSpins = 5 * 360;
+    const currentMod = ((currentRotation % 360) + 360) % 360;
+    const diff = (targetWithinTurn - currentMod + 360) % 360;
+
+    currentRotation += extraSpins + diff;
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+    setTimeout(() => {
+      wheelResult.textContent = options[index];
+      wheelResult.classList.add('show');
+      spinning = false;
+      spinBtn.disabled = false;
+    }, 4150);
+  });
+
+  /* ================== PARTÍCULAS DE FONDO (CANVAS, pantalla de bloqueo) ================== */
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function createParticles() {
+    particles = [];
+    const count = Math.min(60, Math.floor((w * h) / 18000));
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.8 + 0.4,
+        speedY: Math.random() * 0.4 + 0.1,
+        speedX: (Math.random() - 0.5) * 0.3,
+        alpha: Math.random() * 0.5 + 0.15
+      });
+    }
+  }
+  createParticles();
+  window.addEventListener('resize', createParticles);
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
+      ctx.shadowBlur = 5;
+      ctx.shadowColor = 'rgba(255,255,255,0.6)';
+      ctx.fill();
+
+      p.y -= p.speedY;
+      p.x += p.speedX;
+      if (p.y < -10) {
+        p.y = h + 10;
+        p.x = Math.random() * w;
+      }
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  window.addEventListener('load', () => {
+    if (window.innerWidth > 600) nameInput.focus();
+  });
+</script>
+
+</body>
+</html>
