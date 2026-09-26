@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#050303">
+<title>Para ti, mi vida.</title>
+<link rel="icon" type="image/png" href="assets/head.png">
+<link rel="apple-touch-icon" href="assets/head.png">
+<style>
+  :root{
+    --black: #0a0606;
+    --black-deep: #050303;
+    --red-glow: #5c1010;
+    --red-mid: #7a1414;
+    --red-line: #4a1010;
+    --red-bright: #a52222;
+    --text: #e9dede;
+    --text-dim: #8f7676;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    width:100%;
+    background: var(--black-deep);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    overflow:hidden;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ===================== FONDO: negro con resplandor rojo difuminado ===================== */
+  #bg {
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 70%, var(--red-glow) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, var(--red-mid) 0%, transparent 55%),
+      var(--black-deep);
+    animation: breathe 8s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+  }
+
+  /* leve viñeta para reforzar la sensación de poca luz */
+  #vignette {
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background: radial-gradient(ellipse 80% 80% at 50% 40%, transparent 40%, rgba(0,0,0,0.75) 100%);
+  }
+
+  /* ===================== CORAZONES FLOTANTES, DIFUMINADOS ===================== */
+  .hearts-layer {
+    position:fixed;
+    inset:0;
+    z-index:2;
+    overflow:hidden;
+    pointer-events:none;
+  }
+
+  .heart {
+    position:absolute;
+    bottom:-60px;
+    left: var(--x);
+    width: var(--s);
+    height: var(--s);
+    background: var(--red-mid);
+    opacity:0;
+    filter: blur(3px);
+    transform: rotate(45deg);
+    animation-name: floatHeart;
+    animation-duration: var(--d);
+    animation-delay: var(--delay);
+    animation-timing-function: ease-in;
+    animation-iteration-count: infinite;
+  }
+
+  .heart::before, .heart::after {
+    content:"";
+    position:absolute;
+    width: var(--s);
+    height: var(--s);
+    background: inherit;
+    border-radius:50%;
+  }
+
+  .heart::before { top: calc(var(--s) * -0.5); left: 0; }
+  .heart::after  { left: calc(var(--s) * 0.5); top: 0; }
+
+  @keyframes floatHeart {
+    0%   { transform: translate(0, 0) rotate(45deg); opacity:0; }
+    12%  { opacity: 0.32; }
+    88%  { opacity: 0.32; }
+    100% { transform: translate(var(--dx), -115vh) rotate(45deg); opacity:0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .heart, #bg { animation: none; }
+  }
+
+  .stage {
+    position:relative;
+    z-index:3;
+    height: 100%;
+    height: 100dvh;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    text-align:center;
+  }
+
+  .title {
+    font-size: clamp(26px, 7vw, 44px);
+    font-weight: normal;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    text-shadow: 0 0 24px rgba(165,34,34,0.45), 0 0 4px rgba(0,0,0,0.6);
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  .sub {
+    font-size: clamp(12px, 3vw, 14px);
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: lowercase;
+    margin-bottom: 54px;
+  }
+
+  .months {
+    display:flex;
+    flex-direction:column;
+    gap: 18px;
+    width: min(300px, 82vw);
+  }
+
+  .month-btn {
+    position: relative;
+    display:block;
+    padding: 18px 20px;
+    font-family: inherit;
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: var(--text);
+    text-decoration:none;
+    background: linear-gradient(180deg, rgba(122,20,20,0.12), rgba(0,0,0,0.2));
+    border: 1px solid var(--red-line);
+    transition: border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .month-btn:hover, .month-btn:focus-visible {
+    border-color: var(--red-bright);
+    background: linear-gradient(180deg, rgba(165,34,34,0.18), rgba(0,0,0,0.25));
+    box-shadow: 0 0 22px rgba(165,34,34,0.35);
+    outline: none;
+  }
+
+  .month-btn:active { transform: scale(0.98); }
+
+  @media (max-width: 380px) {
+    .month-btn { padding: 16px 18px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="vignette"></div>
+
+<div class="hearts-layer">
+  <div class="heart" style="--x:6%;  --s:12px; --d:14s; --delay:0s;   --dx:14px;"></div>
+  <div class="heart" style="--x:18%; --s:8px;  --d:11s; --delay:-4s;  --dx:-10px;"></div>
+  <div class="heart" style="--x:30%; --s:15px; --d:17s; --delay:-9s;  --dx:20px;"></div>
+  <div class="heart" style="--x:45%; --s:9px;  --d:12.5s; --delay:-2s; --dx:-16px;"></div>
+  <div class="heart" style="--x:58%; --s:13px; --d:15.5s; --delay:-7s; --dx:12px;"></div>
+  <div class="heart" style="--x:70%; --s:10px; --d:13s; --delay:-5s;  --dx:-14px;"></div>
+  <div class="heart" style="--x:82%; --s:16px; --d:18s; --delay:-11s; --dx:18px;"></div>
+  <div class="heart" style="--x:92%; --s:8px;  --d:10.5s; --delay:-3s; --dx:-8px;"></div>
+</div>
+
+<div class="stage">
+  <div class="title">Para ti, mi vida.</div>
+  <div class="sub">elige un mes</div>
+
+  <div class="months">
+    <a class="month-btn" href="months/mes-01/index.html">1 mes</a>
+    <a class="month-btn" href="months/mes-02/index.html">2 meses</a>
+  </div>
+</div>
+
+</body>
+</html>
