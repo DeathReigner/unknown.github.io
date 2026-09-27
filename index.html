@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#050303">
-<title>Para ti, mi vida.</title>
+<title>Para ti, mi vida</title>
 <link rel="icon" type="image/png" href="assets/head.png">
 <link rel="apple-touch-icon" href="assets/head.png">
 <style>
@@ -174,6 +174,26 @@
 
   .month-btn:active { transform: scale(0.98); }
 
+  .report-link {
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 4;
+    font-family: inherit;
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    text-decoration: none;
+    opacity: 0.55;
+    transition: opacity 0.3s ease, color 0.3s ease;
+  }
+
+  .report-link:hover, .report-link:focus-visible {
+    opacity: 0.9;
+    color: var(--text);
+  }
+
   @media (max-width: 380px) {
     .month-btn { padding: 16px 18px; font-size: 15px; }
   }
@@ -205,5 +225,8 @@
   </div>
 </div>
 
+<a class="report-link" href="report.html">Reportar</a>
+
 </body>
 </html>
+
