@@ -2,67 +2,95 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>¿?</title>
-<link rel="icon" type="image/png" href="../../assets/head.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05030f">
+<title>Mi cielo</title>
+<link rel="icon" type="image/png" href="assets/head.png">
+<link rel="apple-touch-icon" href="assets/head.png">
 <style>
   :root{
-    /* Pantalla de bloqueo: azul cielo, azul pastel y blanco */
-    --sky: #6fb7e8;
-    --sky-mid: #9dd3f5;
-    --sky-light: #cfeaf9;
-    --pastel: #eef8fd;
-    --white: #ffffff;
-    --ink: #244056;
-    --ink-soft: #4d7089;
-
-    /* Pantalla de celebración/mensaje: grises y negros */
-    --gs-black: #0d0d0d;
-    --gs-dark: #232323;
-    --gs-mid: #4a4a4a;
-    --gs-light: #9a9a9a;
-    --gs-pale: #d9d9d9;
-    --gs-white: #f2f2f2;
+    --void: #030208;
+    --void-2: #060414;
+    --nebula-purple: #431f63;
+    --nebula-pink: #7c3268;
+    --nebula-blue: #23264f;
+    --star: #f4f0ff;
+    --star-dim: #9a89bd;
+    --glow: #8a5ce0;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 
   html, body {
-    height:100%;
+    height: 100%;
+    height: 100dvh;
     width:100%;
     overflow:hidden;
-    background: var(--sky);
+    overscroll-behavior: none;
+    background: var(--void);
     font-family: 'Georgia', 'Times New Roman', serif;
-    color:#eaeaea;
+    color: var(--star);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
-  /* ===================== FONDO PANTALLA DE BLOQUEO ===================== */
   #bg {
     position:fixed;
     inset:0;
     z-index:0;
     background:
-      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 45%),
-      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.3), transparent 50%),
-      linear-gradient(160deg, var(--sky) 0%, var(--sky-mid) 40%, var(--sky-light) 70%, var(--pastel) 100%);
+      radial-gradient(ellipse 55% 40% at 20% 25%, rgba(67,31,99,0.4), transparent 60%),
+      radial-gradient(ellipse 50% 45% at 85% 20%, rgba(124,50,104,0.22), transparent 55%),
+      radial-gradient(ellipse 70% 55% at 50% 90%, rgba(35,38,79,0.38), transparent 60%),
+      var(--void);
     background-size: 200% 200%;
-    animation: bgShift 14s ease-in-out infinite;
+    animation: driftNebula 22s ease-in-out infinite;
   }
 
-  @keyframes bgShift {
-    0%   { background-position: 0% 0%; }
-    50%  { background-position: 100% 100%; }
-    100% { background-position: 0% 0%; }
+  @keyframes driftNebula {
+    0%, 100% { background-position: 0% 0%; }
+    50% { background-position: 60% 40%; }
   }
 
-  canvas#particles {
+  canvas#stars { position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+  .shooting-star {
     position:fixed;
-    inset:0;
-    z-index:1;
+    left:-10%;
+    width: 2.5px;
+    height: 2.5px;
+    background: var(--star);
+    border-radius: 50%;
+    box-shadow: 0 0 10px 2px rgba(244,240,255,0.9);
+    z-index:2;
+    opacity:0;
     pointer-events:none;
   }
+  .shooting-star::before {
+    content:"";
+    position:absolute;
+    top:50%; right:0;
+    width: 160px;
+    height: 1.5px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, transparent, rgba(244,240,255,0.15) 40%, rgba(244,240,255,0.85));
+    border-radius: 2px;
+  }
+  .shooting-star.run {
+    animation-name: shootMove;
+    animation-duration: var(--dur);
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation-fill-mode: forwards;
+  }
+  @keyframes shootMove {
+    0%   { transform: translate(0,0) rotate(var(--rot)); opacity:0; }
+    8%   { opacity:1; }
+    80%  { opacity:0.9; }
+    100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity:0; }
+  }
 
-  /* ===================== CONTENEDORES PRINCIPALES ===================== */
   .screen {
     position:fixed;
     inset:0;
@@ -72,221 +100,81 @@
     align-items:center;
     justify-content:center;
     padding: 24px;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     text-align:center;
   }
 
   #celebration { display:none; overflow-y:auto; }
 
-  /* ===================== PANTALLA DE BLOQUEO ===================== */
-  .lock-icon {
-    width: 44px;
-    height: 44px;
-    margin-bottom: 18px;
-    animation: pulseLock 2.2s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgba(36,64,86,0.35));
-  }
-
-  @keyframes pulseLock {
-    0%,100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-  }
-
+  /* ===================== PANTALLA DE DESBLOQUEO: CONSTELACIÓN ===================== */
   .lock-title {
-    font-size: clamp(20px, 5.6vw, 30px);
-    letter-spacing: 1.5px;
-    color: var(--ink);
-    text-shadow: 0 2px 10px rgba(255,255,255,0.6);
-    margin-bottom: 10px;
-    font-weight:bold;
-    max-width: 340px;
+    font-size: clamp(20px, 5.6vw, 28px);
+    letter-spacing: 1px;
+    font-style: italic;
+    color: var(--star);
+    text-shadow: 0 0 20px rgba(160,108,255,0.5);
+    margin-bottom: 8px;
   }
 
   .lock-sub {
-    font-size: clamp(13px, 3.6vw, 15px);
-    color: var(--ink-soft);
-    margin-bottom: 32px;
-    max-width: 320px;
+    font-size: clamp(12.5px, 3.4vw, 14px);
+    color: var(--star-dim);
+    margin-bottom: 22px;
+    max-width: 300px;
     line-height:1.5;
-    opacity:0.95;
   }
 
-  .name-input {
-    width: min(280px, 80vw);
-    padding: 14px 18px;
-    font-size: 17px;
-    text-align:center;
-    background: rgba(255,255,255,0.55);
-    border: 1.5px solid var(--sky);
-    border-radius: 30px;
-    color: var(--ink);
-    outline:none;
-    box-shadow: 0 0 20px rgba(111,183,232,0.15) inset;
-    transition: all 0.3s ease;
-    font-family: inherit;
-    letter-spacing:1px;
+  .sky-wrap {
+    position: relative;
+    width: min(320px, 82vw);
+    aspect-ratio: 1 / 1;
+    margin-bottom: 18px;
   }
 
-  .name-input::placeholder { color: #7fa2b8; }
+  .sky-wrap svg { width:100%; height:100%; overflow: visible; }
 
-  .name-input:focus {
-    border-color: var(--ink);
-    box-shadow: 0 0 20px rgba(111,183,232,0.4);
+  .link-line {
+    stroke: var(--glow);
+    stroke-width: 0.8;
+    filter: drop-shadow(0 0 3px rgba(160,108,255,0.9));
   }
 
-  .name-input.shake {
-    animation: shake 0.45s ease;
-    border-color: var(--ink);
-  }
+  .bg-star { fill: var(--star); opacity: 0.5; }
 
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-10px); }
-    40% { transform: translateX(10px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
-  }
-
-  .unlock-btn {
-    margin-top: 20px;
-    padding: 12px 38px;
-    font-size: 15px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, var(--sky), var(--sky-mid));
-    border: 1px solid rgba(255,255,255,0.5);
-    border-radius: 30px;
-    color: #fff;
+  .target-star {
+    fill: var(--star-dim);
+    stroke: rgba(244,240,255,0.4);
+    stroke-width: 0.4;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(111,183,232,0.5);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    font-family: inherit;
+    transition: fill 0.25s ease, r 0.25s ease;
   }
 
-  .unlock-btn:active { transform: scale(0.95); }
-
-  .unlock-btn:hover {
-    box-shadow: 0 8px 24px rgba(111,183,232,0.7);
+  .target-star.lit {
+    fill: var(--glow);
+    filter: drop-shadow(0 0 4px rgba(160,108,255,1));
   }
 
-  .error-msg {
-    margin-top: 16px;
-    color: var(--ink-soft);
-    font-size: 13px;
-    height: 18px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  .target-star.start-hint {
+    animation: pulseStar 1.8s ease-in-out infinite;
   }
 
-  .error-msg.show { opacity: 1; }
-
-  /* ===================== DECORACIÓN ANIMADA — PANTALLA DE BLOQUEO ===================== */
-  .clouds-layer {
-    position:absolute;
-    inset:0;
-    overflow:hidden;
-    z-index:1;
-    pointer-events:none;
+  @keyframes pulseStar {
+    0%, 100% { r: 2.6; opacity: 0.7; }
+    50% { r: 3.6; opacity: 1; }
   }
 
-  .cloud {
-    position:absolute;
-    background:#ffffff;
-    border-radius:50px;
-    opacity:0.75;
-  }
-  .cloud::before, .cloud::after {
-    content:"";
-    position:absolute;
-    background:#ffffff;
-    border-radius:50%;
-  }
-  .cloud-a { width:70px; height:26px; top:10%; animation: driftCloud 26s linear infinite; }
-  .cloud-a::before { width:36px; height:36px; top:-16px; left:8px; }
-  .cloud-a::after { width:26px; height:26px; top:-10px; left:36px; }
-
-  .cloud-b { width:90px; height:30px; top:18%; animation: driftCloud 34s linear infinite; animation-delay: -12s; opacity:0.6; }
-  .cloud-b::before { width:40px; height:40px; top:-18px; left:12px; }
-  .cloud-b::after { width:30px; height:30px; top:-12px; left:48px; }
-
-  .cloud-c { width:56px; height:20px; top:8%; animation: driftCloud 20s linear infinite; animation-delay: -6s; opacity:0.5; }
-  .cloud-c::before { width:26px; height:26px; top:-12px; left:6px; }
-  .cloud-c::after { width:20px; height:20px; top:-8px; left:26px; }
-
-  @keyframes driftCloud {
-    from { transform: translateX(-140px); }
-    to   { transform: translateX(calc(100vw + 140px)); }
+  .target-star.wrong { animation: wrongFlash 0.4s ease; }
+  @keyframes wrongFlash {
+    0%, 100% { fill: var(--star-dim); }
+    50% { fill: #e06a6a; }
   }
 
-  .sparkle {
-    position:absolute;
-    width:6px;
-    height:6px;
-    background:#ffffff;
-    border-radius:50%;
-    opacity:0;
-    animation: twinkle 3s ease-in-out infinite;
-    box-shadow: 0 0 6px 2px rgba(255,255,255,0.7);
-  }
-  @keyframes twinkle {
-    0%, 100% { opacity:0; transform: scale(0.6); }
-    50% { opacity:1; transform: scale(1.1); }
-  }
-
-  .lock-character {
-    position:absolute;
-    z-index:1;
-    pointer-events:none;
-    height:auto;
-    display:block;
-    top:-100px;
-    animation: fallRotate linear infinite;
-  }
-
-  .fall-1 { left:6%;  width:58px; animation-duration:9s;  animation-delay:0s;   }
-  .fall-2 { left:32%; width:66px; animation-duration:11s; animation-delay:-4s;  }
-  .fall-3 { left:60%; width:52px; animation-duration:8.5s; animation-delay:-6s; }
-  .fall-4 { left:82%; width:62px; animation-duration:12s; animation-delay:-2s;  }
-
-  @keyframes fallRotate {
-    0%   { transform: translateY(0) rotate(0deg); opacity:0; }
-    6%   { opacity:1; }
-    94%  { opacity:1; }
-    100% { transform: translateY(calc(100vh + 160px)) rotate(360deg); opacity:0; }
-  }
-
-  /* ===================== DECORACIÓN ANIMADA — PANTALLA DE MENSAJE ===================== */
-  .orbs-layer {
-    position:absolute;
-    inset:0;
-    overflow:hidden;
-    z-index:1;
-    pointer-events:none;
-  }
-
-  .orb {
-    position:absolute;
-    border-radius:50%;
-    filter: blur(26px);
-    opacity:0.28;
-    animation: floatOrb ease-in-out infinite;
-  }
-
-  .orb-1 { width:180px; height:180px; background:#8a8a8a; top:6%; left:-8%; animation-duration:9s; }
-  .orb-2 { width:220px; height:220px; background:#5a5a5a; top:40%; right:-10%; animation-duration:11s; animation-delay:-3s; }
-  .orb-3 { width:140px; height:140px; background:#c9c9c9; bottom:14%; left:-6%; animation-duration:8s; animation-delay:-1.5s; }
-  .orb-4 { width:160px; height:160px; background:#707070; bottom:2%; right:6%; animation-duration:10s; animation-delay:-5s; }
-
-  @keyframes floatOrb {
-    0%, 100% { transform: translate(0,0) scale(1); }
-    50% { transform: translate(24px,-34px) scale(1.08); }
-  }
-
-  /* ===================== PANTALLA DE CELEBRACIÓN (GRISES Y NEGROS) ===================== */
+  /* ===================== PANTALLA DE CELEBRACIÓN ===================== */
   #celebration {
     justify-content: flex-start;
-    padding-top: 50px;
-    padding-bottom: 60px;
-    background: linear-gradient(180deg, var(--gs-black) 0%, var(--gs-dark) 35%, #333333 70%, var(--gs-mid) 100%);
+    padding-top: calc(50px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 
   .content-wrap {
@@ -299,11 +187,22 @@
     z-index:3;
   }
 
+  .header-img {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(138,92,224,0.4);
+    box-shadow: 0 0 24px rgba(138,92,224,0.45);
+    margin-bottom: 14px;
+    animation: fadeInUp 0.9s ease;
+  }
+
   .main-title {
     font-size: clamp(28px, 8.5vw, 44px);
     font-weight: bold;
-    color: var(--gs-white);
-    text-shadow: 0 2px 14px rgba(0,0,0,0.6);
+    color: var(--star);
+    text-shadow: 0 0 24px rgba(160,108,255,0.55);
     margin: 8px 0 4px;
     letter-spacing: 1px;
     animation: fadeInUp 1s ease;
@@ -311,36 +210,35 @@
 
   .subtitle {
     font-size: clamp(15px, 4vw, 18px);
-    color: var(--gs-light);
+    color: var(--star-dim);
     margin-bottom: 26px;
     letter-spacing: 0.5px;
     animation: fadeInUp 1.2s ease;
   }
 
   .divider {
-    width: 60px;
+    width: 70px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gs-light), transparent);
+    background: linear-gradient(90deg, transparent, var(--nebula-pink), var(--glow), transparent);
     margin: 16px 0;
     animation: fadeInUp 1.3s ease;
   }
 
   .message-card {
-    background: rgba(25,25,25,0.7);
-    border: 1px solid rgba(200,200,200,0.15);
+    background: rgba(8,5,16,0.78);
+    border: 1px solid rgba(138,92,224,0.2);
     border-radius: 22px;
     padding: 28px 24px;
     margin: 10px 0 30px;
-    box-shadow: 0 10px 34px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 34px rgba(0,0,0,0.65), 0 0 30px rgba(67,31,99,0.12) inset;
     animation: fadeInUp 1.5s ease;
-    backdrop-filter: blur(6px);
     text-align: left;
   }
 
   .message-card p {
     font-size: 15.5px;
     line-height: 1.85;
-    color: var(--gs-pale);
+    color: #ded4f2;
   }
 
   .message-card p + p { margin-top: 16px; }
@@ -349,8 +247,13 @@
     margin-top: 20px;
     text-align: right;
     font-style: italic;
-    color: var(--gs-white);
+    color: var(--star);
     font-weight: bold;
+  }
+
+  .closing {
+    font-style: italic;
+    color: var(--star);
   }
 
   @keyframes fadeInUp {
@@ -360,13 +263,12 @@
 
   .footer-note {
     font-size: 13px;
-    color: var(--gs-light);
+    color: var(--star-dim);
     margin-top: 6px;
     animation: fadeInUp 2s ease;
     font-style: italic;
   }
 
-  /* Scrollbar oculta en móviles */
   ::-webkit-scrollbar { width: 0px; background: transparent; }
 
   @media (max-width: 380px) {
@@ -377,140 +279,193 @@
 <body>
 
 <div id="bg"></div>
-<canvas id="particles"></canvas>
+<canvas id="stars"></canvas>
 
-<!-- ===================== PANTALLA DE BLOQUEO ===================== -->
+<!-- ===================== PANTALLA DE DESBLOQUEO ===================== -->
 <div class="screen" id="lockScreen">
+  <div class="lock-title">Un cielo para nosotros</div>
+  <div class="lock-sub">Descubre el orden correcto tocando las estrellas, empezando por la que brilla.</div>
 
-  <div class="clouds-layer">
-    <div class="cloud cloud-a" style="left:10%;"></div>
-    <div class="cloud cloud-b" style="left:55%;"></div>
-    <div class="cloud cloud-c" style="left:75%;"></div>
-    <div class="sparkle" style="top:14%; left:20%; animation-delay:0s;"></div>
-    <div class="sparkle" style="top:24%; left:70%; animation-delay:1s;"></div>
-    <div class="sparkle" style="top:34%; left:40%; animation-delay:2s;"></div>
-    <div class="sparkle" style="top:60%; left:85%; animation-delay:0.5s;"></div>
-    <div class="sparkle" style="top:70%; left:15%; animation-delay:1.6s;"></div>
+  <div class="sky-wrap">
+    <svg viewBox="0 0 100 100" id="sky">
+      <!-- líneas que se dibujan al acertar -->
+      <g id="linesGroup"></g>
+
+      <!-- estrellas decorativas de fondo -->
+      <circle class="bg-star" cx="12" cy="15" r="0.7"></circle>
+      <circle class="bg-star" cx="88" cy="18" r="0.9"></circle>
+      <circle class="bg-star" cx="8" cy="70" r="0.6"></circle>
+      <circle class="bg-star" cx="92" cy="65" r="0.8"></circle>
+      <circle class="bg-star" cx="15" cy="45" r="0.5"></circle>
+      <circle class="bg-star" cx="85" cy="85" r="0.7"></circle>
+      <circle class="bg-star" cx="45" cy="8" r="0.6"></circle>
+      <circle class="bg-star" cx="60" cy="92" r="0.6"></circle>
+
+      <!-- estrellas objetivo: contorno de un corazón. El orden de toque -->
+      <!-- se asigna al azar por JavaScript en cada carga de la página. -->
+      <circle class="target-star" cx="50" cy="30" r="2.6"></circle>
+      <circle class="target-star" cx="32" cy="18" r="2.4"></circle>
+      <circle class="target-star" cx="14" cy="34" r="2.4"></circle>
+      <circle class="target-star" cx="24" cy="56" r="2.4"></circle>
+      <circle class="target-star" cx="50" cy="84" r="2.6"></circle>
+      <circle class="target-star" cx="76" cy="56" r="2.4"></circle>
+      <circle class="target-star" cx="86" cy="34" r="2.4"></circle>
+      <circle class="target-star" cx="68" cy="18" r="2.4"></circle>
+    </svg>
   </div>
-
-  <!-- Imágenes cayendo: reemplaza cada src por la ruta/nombre real de tu imagen -->
-  <img class="lock-character fall-1" src="assets/1.png" alt="Personaje 1">
-  <img class="lock-character fall-2" src="assets/2.png" alt="Personaje 2">
-  <img class="lock-character fall-3" src="assets/3.png" alt="Personaje 3">
-  <img class="lock-character fall-4" src="assets/4.png" alt="Personaje 4">
-
-  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="10" width="16" height="10" rx="2" stroke="#244056" stroke-width="1.5"/>
-    <path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="#244056" stroke-width="1.5"/>
-    <circle cx="12" cy="15" r="1.5" fill="#244056"/>
-  </svg>
-  <div class="lock-title">¿Y esto?</div>
-  <div class="lock-sub">Escribe uno de tus nombres (o apodos) para desbloquear.</div>
-  <input type="text" id="nameInput" class="name-input" placeholder="Escribe aquí..." autocomplete="off" autocapitalize="off" spellcheck="false">
-  <button class="unlock-btn" id="unlockBtn">Desbloquear</button>
-  <div class="error-msg" id="errorMsg">Eh... no es correcto.</div>
 </div>
 
 <!-- ===================== PANTALLA DE CELEBRACIÓN ===================== -->
 <div class="screen" id="celebration">
-
-  <div class="orbs-layer">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-    <div class="orb orb-4"></div>
-  </div>
-
   <div class="content-wrap">
 
-    <div class="main-title">PRIMER MES</div>
+    <img class="header-img" src="assets/1.png" alt="">
+    <div class="main-title">Mi vida hermosa</div>
     <div class="subtitle">Feliz día, mi amor</div>
     <div class="divider"></div>
 
     <div class="message-card">
-      <p>Sé que un mes puede parecer poco tiempo. Quizá para algunas personas no sea algo tan importante como para celebrarlo, y tal vez hasta pueda parecer un poco tonto darle tanta importancia. Soy nuevo en todo esto y, siendo completamente sincero, todavía no tengo ni la menor idea de cómo funcionan muchas de estas cosas, especialmente los aniversarios y la manera "correcta" de celebrarlos.</p>
+      <p>Ya son dos meses, dos meses juntos, y la verdad, cuando me pongo a pensar en todo lo que ha pasado durante este tiempo, se me hace curioso pensar que apenas llevamos dos meses. Siento que fue ayer cuando finalmente te pedí que fueras mi novia y empezó oficialmente todo esto que tenemos, pero al mismo tiempo siento que llevas mucho más tiempo formando parte de mi vida.</p>
 
-      <p>Nunca he sido una persona que celebre demasiado. Te lo he dicho varias veces: prefiero quedarme en silencio, guardar el momento para mí y simplemente sentirme feliz por lo que está pasando, antes que organizar algo o hacer una gran celebración. Pero contigo algo cambió.</p>
+      <p>Antes que nada, quería decirte algo sobre la página, me da un poco de pena volver a usarla para este mes, sé que quizá no es algo completamente nuevo y sinceramente, me hubiera gustado hacerte algo diferente esta vez. Me hubiera encantado poder verte en persona, llegar con unas flores, unos chocolates, darte un abrazo enorme y simplemente pasar un rato contigo, no necesitaba hacer algo especial, solo quería poder celebrar estos dos meses contigo.</p>
 
-      <p>Por alguna razón, muchas cosas contigo sí quiero celebrarlas. Quiero detenerme un momento, mirar y disfrutar todo lo que ha pasado, aunque haya sido apenas un mes, porque para mí ha significado muchísimo más de lo que podría explicar fácilmente con palabras.</p>
+      <p>Por eso terminé usando otra vez la página, pero tampoco quería simplemente dejarla igual, me tomó bastante tiempo cambiar cosas, reestructurarla y hacer que se sintiera diferente para este mes. El primer mes decidí dejarlo tal cual estaba, porque quería conservarlo como recuerdo de cómo empezó todo, quería que esa parte se quedara exactamente como estaba, pero todo lo demás sí quise cambiarlo y hacerlo un poco más especial. Quizá no sea exactamente lo que me hubiera gustado hacer contigo, pero lo hice pensando en ti y espero que puedas sentir un poco de todo el cariño que le puse.</p>
 
-      <p>Desde que llegaste a mi vida, algo cambió para bien dentro de mí, mis días son más relajados y felices, y ahora cada día tiene algo que me hace ilusión. Tu compañía y ayuda se han convertido en 2 de mis motores principales, en una de esas cosas que hacen que incluso los días más pesados se sientan un poco más ligeros. Hay una parte de mí que simplemente piensa: "Tengo que seguir, porque quiero volver a verla". Y quizás no te das cuenta de lo importante que eres para mí cuando digo algo así, pero genuinamente lo eres.</p>
+      <p>Aunque, realmente, no quiero que este mensaje se trate de la página ni de lo que me hubiera gustado hacer hoy. Quiero que se trate de nosotros. De estos dos meses, de todo lo que hemos vivido y, sobre todo, de lo feliz que me hace poder decir que eres mi novia.</p>
 
-      <p>Eres mi primera pareja, la primera persona con la que vivo algo así, mi primera vez descubriendo todas estas emociones, todos estos momentos, todos estos sentimientos que antes solamente podía imaginar. Y precisamente porque eres la primera, muchas veces no sé qué hacer, qué decir o cuál es la manera correcta de expresar lo que siento. Puede que todavía esté aprendiendo, que cometa errores de los cuáles siempre me arrepiento y que muchas cosas me parezcan completamente nuevas, pero hay algo de lo que sí estoy seguro: quiero aprender y seguir aprendiendo contigo.</p>
+      <p>Siento que el tiempo se ha pasado muy rápido, ya son dos meses y todavía me parece increíble que tú y yo estemos viviendo esto, a veces pienso en cómo empezó todo, en cómo terminamos llegando hasta aquí y en todas las pequeñas cosas que han pasado entre nosotros y no puedo evitar sonreír. Me hace muy feliz estar viviendo todo esto contigo, y creo que una de las cosas más bonitas es justamente que seas tú la persona con la que estoy compartiendo todo esto.</p>
 
-      <p>No exagero cuando digo que pienso en ti todos los días. A cualquier hora, en cualquier momento, por cualquier razón, de alguna manera terminas apareciendo en mi cabeza. A veces es algo tan simple como recordar una conversación, una palabra tuya, una mirada o alguna tontería que hicimos juntos. Incluso en los gestos o movimientos de otras personas llego a verte, y eso me hace pensar en cuándo volveré a verte.</p>
+      <p>También me hizo muchísimo bien que vinieras hace una semana, no sabía cuánto necesitaba verte hasta que finalmente pude hacerlo, ese mes y medio se me hizo eterno, extrañarte durante todo ese tiempo fue difícil y cuando por fin pude tenerte otra vez cerca, sentí que toda esa espera había valido la pena. Aunque hay algo medio injusto en eso: apenas te vi la semana pasada y ya te extraño muchísimo otra vez.</p>
 
-      <p>Y sí, también me encanta verte en las fotos que tengo de ti. Cada vez que encuentro alguna en mi galería me hace feliz, por eso te dije lo de la foto el otro día. No quiero que suene superficial ni que parezca que solamente hablo de tu apariencia; es simplemente que me encanta admirarte. Me pareces increíblemente hermosa, y me encanta poder guardar pequeños fragmentos de ti en mi teléfono para volver a mirarlos cuando quiera. Hay algo muy bonito en poder ver una foto tuya y sentir inmediatamente una sonrisa.</p>
+      <p>Me gusta estar contigo, me gusta hablar contigo, escucharte, verte y compartir cosas contigo. Incluso las cosas más pequeñas o más tontas. No necesito que siempre estemos haciendo algo especial para sentirme feliz contigo. Muchas veces simplemente saber que estás ahí ya me hace sentir bien.</p>
 
-      <p>Por eso también hice esta página web para ti.</p>
+      <p>Y también quería disculparme por algo, a veces siento que no sé muy bien cómo expresarme contigo. Hay momentos en los que simplemente no sé qué decir o cómo responder cuando me dices algo bonito. A veces leo tus mensajes y tengo un montón de cosas que quisiera decirte, pero no sé cómo ponerlas en palabras y sé que algunas veces puedo parecer poco expresivo. También siento que muchas veces no sé cómo demostrarte lo mucho que agradezco tus palabras, tus detalles, tu cariño y todo lo que haces por mí.</p>
 
-      <p>Quería darte algo que fuera un poco más personal, algo que no fuera simplemente un mensaje escrito y enviado. Quería plasmar una parte de mí, de lo que sé hacer y del tiempo y esfuerzo que estoy dispuesto a dedicarte, para convertirlos en algo que pudiera quedar ahí y que tú pudieras visitar cuando quisieras.</p>
+      <p>Y sí, a veces siento que termino diciendo las mismas cosas una y otra vez, me da miedo que algún día puedas pensar que soy aburrido o que mis palabras ya no significan tanto porque las repito demasiado. Pero quiero que sepas algo. Que repita algunas cosas no significa que las sienta menos. Si te digo muchas veces que te amo, es porque realmente te amo. Si te digo que te extraño, es porque realmente te extraño. Si te digo que eres importante para mí, es porque realmente lo eres. Simplemente hay cosas que todavía no sé cómo explicar. Y aunque a veces no encuentre las palabras correctas, sí sé lo que siento por ti.</p>
 
-      <p>Puede que para alguien más sea solamente una página de internet, pero para mí significa mucho más. Es una pequeña forma de decirte: "Pensé en ti, trabajé en esto pensando en ti y quise crear algo especialmente para ti".</p>
+      <p>Te amo muchísimo. Y no quiero dejar de decírtelo solamente porque ya te lo he dicho muchas veces. No quiero que para mí decirte "te amo" se convierta en algo automático. Cada vez que te lo digo, lo siento de verdad.</p>
 
-      <p>Quizá todavía llevemos solamente un mes, pero este primer mes ya ocupa un lugar muy especial en mi corazón, no por la celebración en sí, sino por ti y por compartir tu vida y tu cariño conmigo. No sé qué nos depare el futuro ni cuántas cosas nos falten por descubrir juntos. Sé que vendrán todo tipo de momentos, tanto buenos como malos, pero también sé que lograremos superar cada uno de ellos y seguir adelante. Y me hace muy feliz que seas tú la persona con la que estoy viviendo todo esto.</p>
+      <p>Gracias. Gracias por llegar a mi vida y por dejarme formar parte de la tuya. Gracias por quererme, por escucharme, por tenerme paciencia y por compartir conmigo todos estos momentos. Gracias por cada conversación, cada mensaje, cada llamada, cada abrazo, cada detalle y cada momento que hemos pasado juntos. Y también gracias por todas esas pequeñas cosas que quizás no significan demasiado, pero que yo termino guardando con muchísimo cariño. Gracias por hacerme sentir querido. Gracias por hacerme sentir especial. Y gracias por elegirme para compartir conmigo una parte de tu vida.</p>
 
-      <p>Gracias por este primer mes. Gracias por estar conmigo, por compartir tu tiempo conmigo, por dejarme conocerte cada día un poco más y por hacerme sentir algo tan bonito.</p>
+      <p>Sé que apenas llevamos dos meses y que todavía nos queda mucho por conocer el uno del otro. Todavía hay muchas cosas que quiero vivir contigo, momentos que quiero compartir, fotos que quiero tomar, recuerdos que quiero hacer y días en los que simplemente quiero estar contigo. Quiero seguir conociéndote. Quiero conocer tus pequeñas costumbres, tus gustos, tus sueños, las cosas que te hacen feliz, las que te preocupan, las que te emocionan y todas esas partes de ti que todavía no conozco del todo. Quiero seguir descubriéndote poco a poco y también quiero que tú sigas descubriéndome a mí.</p>
 
-      <p>Y aunque todavía estoy aprendiendo cómo funcionan estas cosas y cómo se supone que se celebra esto, creo que ya entendí algo importante: cuando se trata de ti, quiero celebrar cada momento que podamos tener juntos.</p>
+      <p>No sé qué nos espera más adelante, no sé cómo van a ser los próximos meses ni todas las cosas que vamos a vivir. Pero sí sé que estos dos meses han significado muchísimo para mí. Me han hecho muy feliz y me han dado momentos que no cambiaría por nada, ojalá estar contigo ahora mismo para decirte todo esto mirándote a los ojos, abrazarte y dormirme abrazándote, simplemente quedarme contigo un rato. Ojalá pudiera darte las flores, los chocolates y ese momento juntos que me hubiera gustado regalarte hoy, pero mientras pueda hacerte llegar estas palabras, quiero que al menos puedas saber todo lo que siento por ti.</p>
 
-      <p>Feliz primer mes, mi niña hermosa.</p>
+      <p>Te amo. Te amo por quien eres, por cómo me haces sentir y por todos esos pequeños momentos que hacen que estar contigo sea tan especial para mí. Y aunque no siempre sepa expresarlo de la mejor manera, aunque a veces me quede sin palabras o termine repitiendo lo mismo una y otra vez, quiero que nunca dudes de algo: Eres alguien demasiado especial e importante para mí. Me haces muy feliz. Y estoy muy agradecido de poder decir que eres mi novia.</p>
 
-      <p class="signature">Amy, Te amo muchísimo, demasiado, más de lo que crees. 28/08/2026</p>
+      <p class="closing">Felices dos meses, mi amor. Espero que esto sea solamente el comienzo de muchos momentos más juntos. Espero que todavía nos queden muchas conversaciones, muchas llamadas, muchos abrazos, muchas fotos, muchos recuerdos y muchos días juntos. Y espero poder seguir diciéndote que te amo durante muchísimo, muchísimo tiempo más, gracias por ser tú y gracias por dejarme ser parte de tu vida. Te amo muchísimo, mi vida hermosa.</p>
     </div>
 
-    <div class="footer-note">— Con todo mi amor, Joshua —</div>
+    <div class="footer-note">— Con todo mi amor, para mi dueña. Att: MorelenseTactico —</div>
   </div>
 </div>
 
 <script>
-  const VALID_NAMES = ["marion", "selene", "amy", "pichula", "selenita", "salmon"];
-
-  const nameInput = document.getElementById('nameInput');
-  const unlockBtn = document.getElementById('unlockBtn');
-  const errorMsg = document.getElementById('errorMsg');
   const lockScreen = document.getElementById('lockScreen');
   const celebration = document.getElementById('celebration');
+  const linesGroup = document.getElementById('linesGroup');
+  const stars = Array.from(document.querySelectorAll('.target-star'));
 
-  function normalize(str) {
-    return str
-      .trim()
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+  /* Baraja el orden correcto de toque en cada carga, manteniendo las
+     estrellas en su posición fija (el contorno del corazón). */
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
-  function tryUnlock() {
-    const val = normalize(nameInput.value);
-    if (VALID_NAMES.includes(val)) {
-      unlock();
-    } else {
-      nameInput.classList.remove('shake');
-      void nameInput.offsetWidth;
-      nameInput.classList.add('shake');
-      errorMsg.classList.add('show');
-      setTimeout(() => errorMsg.classList.remove('show'), 2200);
+  const randomOrder = shuffle(stars.map((_, i) => i));
+  stars.forEach((star, i) => {
+    star.dataset.index = randomOrder[i];
+  });
+  const startStar = stars.find(s => s.dataset.index === '0');
+  if (startStar) startStar.classList.add('start-hint');
+
+  const points = stars
+    .slice()
+    .sort((a, b) => parseInt(a.dataset.index, 10) - parseInt(b.dataset.index, 10))
+    .map(el => ({ x: parseFloat(el.getAttribute('cx')), y: parseFloat(el.getAttribute('cy')) }));
+
+  let progress = 0;
+
+  function drawLine(p1, p2) {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', p1.x);
+    line.setAttribute('y1', p1.y);
+    line.setAttribute('x2', p2.x);
+    line.setAttribute('y2', p2.y);
+    line.setAttribute('class', 'link-line');
+    linesGroup.appendChild(line);
+  }
+
+  function resetProgress(starEl) {
+    progress = 0;
+    linesGroup.innerHTML = '';
+    stars.forEach(s => s.classList.remove('lit'));
+    if (starEl) {
+      starEl.classList.add('wrong');
+      setTimeout(() => starEl.classList.remove('wrong'), 400);
     }
   }
 
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const idx = parseInt(star.dataset.index, 10);
+      if (idx === progress) {
+        star.classList.add('lit');
+        if (progress > 0) drawLine(points[progress - 1], points[progress]);
+        progress++;
+        if (progress === points.length) {
+          drawLine(points[progress - 1], points[0]);
+          setTimeout(unlock, 750);
+        }
+      } else {
+        resetProgress(star);
+      }
+    });
+  });
+
   function unlock() {
-    lockScreen.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    lockScreen.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
     lockScreen.style.opacity = '0';
     lockScreen.style.transform = 'scale(1.05)';
     setTimeout(() => {
       lockScreen.style.display = 'none';
       celebration.style.display = 'flex';
       celebration.style.animation = 'fadeInUp 0.8s ease';
-    }, 600);
+    }, 700);
   }
 
-  unlockBtn.addEventListener('click', tryUnlock);
-  nameInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') tryUnlock();
-  });
+  /* ================== ESTRELLA FUGAZ (dinámica, variable) ================== */
+  function spawnShootingStar() {
+    const star = document.createElement('div');
+    star.className = 'shooting-star';
+    const startTop = 6 + Math.random() * 34;      // aparece entre 6% y 40% de alto
+    const dur = 1.5 + Math.random() * 1.3;         // duración del cruce
+    const rot = -22 - Math.random() * 12;          // ángulo de caída
+    const dx = 118 + Math.random() * 30;           // distancia horizontal recorrida
+    const dy = 45 + Math.random() * 30;            // distancia vertical recorrida
+    star.style.top = startTop + '%';
+    star.style.setProperty('--dur', dur + 's');
+    star.style.setProperty('--rot', rot + 'deg');
+    star.style.setProperty('--dx', dx + 'vw');
+    star.style.setProperty('--dy', dy + 'vh');
+    document.body.appendChild(star);
+    requestAnimationFrame(() => star.classList.add('run'));
+    setTimeout(() => star.remove(), dur * 1000 + 300);
+  }
 
-  /* ================== PARTÍCULAS DE FONDO (CANVAS, pantalla de bloqueo) ================== */
-  const canvas = document.getElementById('particles');
+  function scheduleShootingStars() {
+    spawnShootingStar();
+    setTimeout(scheduleShootingStars, 7000 + Math.random() * 10000);
+  }
+  setTimeout(scheduleShootingStars, 2500);
+
+  /* ================== ESTRELLAS DE FONDO (CANVAS) ================== */
+  const canvas = document.getElementById('stars');
   const ctx = canvas.getContext('2d');
   let w, h, particles;
 
@@ -523,45 +478,35 @@
 
   function createParticles() {
     particles = [];
-    const count = Math.min(60, Math.floor((w * h) / 18000));
+    const count = Math.min(90, Math.floor((w * h) / 14000));
     for (let i = 0; i < count; i++) {
       particles.push({
         x: Math.random() * w,
         y: Math.random() * h,
-        r: Math.random() * 1.8 + 0.4,
-        speedY: Math.random() * 0.4 + 0.1,
-        speedX: (Math.random() - 0.5) * 0.3,
-        alpha: Math.random() * 0.5 + 0.15
+        r: Math.random() * 1.3 + 0.3,
+        alpha: Math.random() * 0.45 + 0.12,
+        speed: Math.random() * 0.015 + 0.005,
+        phase: Math.random() * Math.PI * 2
       });
     }
   }
   createParticles();
   window.addEventListener('resize', createParticles);
 
-  function drawParticles() {
+  function drawParticles(t) {
     ctx.clearRect(0, 0, w, h);
     particles.forEach(p => {
+      const twinkle = 0.5 + 0.5 * Math.sin(t * p.speed + p.phase);
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
-      ctx.shadowBlur = 5;
-      ctx.shadowColor = 'rgba(255,255,255,0.6)';
+      ctx.fillStyle = `rgba(244,240,255,${p.alpha * twinkle})`;
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = 'rgba(160,108,255,0.6)';
       ctx.fill();
-
-      p.y -= p.speedY;
-      p.x += p.speedX;
-      if (p.y < -10) {
-        p.y = h + 10;
-        p.x = Math.random() * w;
-      }
     });
     requestAnimationFrame(drawParticles);
   }
-  drawParticles();
-
-  window.addEventListener('load', () => {
-    if (window.innerWidth > 600) nameInput.focus();
-  });
+  requestAnimationFrame(drawParticles);
 </script>
 
 </body>
