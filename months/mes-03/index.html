@@ -250,6 +250,86 @@
   .key.ghost { border-color: transparent; background: transparent; font-size: 18px; color: var(--cream-dim); }
   .key.empty { visibility: hidden; pointer-events: none; }
 
+  /* ===================== CARTA-PISTA ===================== */
+  #lockScreen {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: safe center;
+  }
+  #lockScreen > * { flex-shrink: 0; }
+
+  .letter-wrap {
+    width: min(340px, 88vw);
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .letter-toggle {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-family: inherit;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.9;
+    touch-action: manipulation;
+  }
+  .letter-toggle .chev {
+    display: inline-block;
+    transition: transform 0.4s ease;
+    font-style: normal;
+    font-size: 12px;
+  }
+  .letter-wrap.open .letter-toggle .chev { transform: rotate(180deg); }
+
+  .letter-body {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.9s ease, opacity 0.7s ease, margin 0.5s ease;
+  }
+  .letter-wrap.open .letter-body {
+    max-height: 1600px;
+    opacity: 1;
+    margin-top: 8px;
+  }
+
+  .letter-card {
+    background: rgba(10,6,4,0.55);
+    border: 1px solid rgba(224,123,28,0.22);
+    border-radius: 18px;
+    padding: 22px 20px;
+    text-align: left;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .letter-card h3 {
+    font-size: 14px;
+    font-style: italic;
+    font-weight: normal;
+    color: var(--gold);
+    text-align: center;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+  .letter-card p {
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: var(--cream);
+    opacity: 0.92;
+  }
+  .letter-card p + p { margin-top: 12px; }
+
   /* ===================== TEXTO REVELADO ===================== */
   .content-wrap {
     max-width: 480px;
@@ -366,6 +446,7 @@
       gap: 8px;
     }
     .key { font-size: 20px; }
+    #lockScreen .letter-wrap { grid-column: 1 / -1; grid-row: 5; margin-top: 14px; }
   }
 
   @media (max-width: 380px) {
@@ -387,7 +468,7 @@
 <!-- ===================== PANTALLA DE CÓDIGO ===================== -->
 <div class="screen" id="lockScreen">
   <div class="lock-title">Un último paso</div>
-  <div class="lock-sub">Encuentra el código de 6 números...</div>
+  <div class="lock-sub">Entre las líneas de una vieja carta duermen tres cifras. Léelas en orden, como quien lee una fecha, sin adornos.</div>
 
   <div class="dots" id="dots">
     <div class="dot"></div><div class="dot"></div><div class="dot"></div>
@@ -407,6 +488,22 @@
     <button class="key empty" tabindex="-1" aria-hidden="true"></button>
     <button class="key" data-key="0">0</button>
     <button class="key ghost" data-key="del" aria-label="Borrar">⌫</button>
+  </div>
+
+  <div class="letter-wrap" id="letterWrap">
+    <button class="letter-toggle" id="letterToggle" type="button" aria-expanded="false">
+      <span>Una carta olvidada entre las páginas, haz click aquí.</span><span class="chev">▾</span>
+    </button>
+    <div class="letter-body">
+      <div class="letter-card">
+        <h3>Carta hallada entre las páginas de un libro viejo</h3>
+        <p>Llegué al pueblo cuando el reloj de la plaza marcaba veintiocho minutos después del mediodía. Nadie me esperaba, y sin embargo sentí que algo en aquel lugar me reconocía, como si las calles empedradas hubieran guardado mi nombre durante años, aguardando mi regreso.</p>
+        <p>La posadera, una mujer de manos curtidas y mirada serena, me sirvió un café oscuro y me habló sin que yo preguntara nada. Me contó que en la casa del fondo, la de las ventanas azules, vivieron siete hermanos que se juraron no separarse jamás. Con el tiempo, poco a poco fue cediendo cada uno a los caprichos del mundo: se marcharon tras sueños distintos, y la casa se fue quedando en silencio.</p>
+        <p>Solo el menor, el más callado y el único que se atrevió a partir lejos, volvió una tarde de otoño cargando una maleta gastada. Dentro llevaba veintiséis cartas sin abrir, atadas con un hilo rojo. Nunca dijo a quién iban dirigidas ni por qué las había conservado durante tanto tiempo, y nadie en el pueblo se atrevió a preguntarle.</p>
+        <p>Cuando terminó el café, la posadera me miró un instante y añadió, casi en un susurro: "Hay cosas que no se pierden, joven; solo esperan a que alguien sepa leerlas en el orden correcto".</p>
+        <p>Salí a la plaza con aquella frase dándome vueltas en la cabeza. El reloj seguía marcando la misma hora, como si el tiempo, en ese rincón del mundo, hubiera decidido esperarme.</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -454,16 +551,16 @@
 
       <p>Quiero seguir aprendiendo, seguir creciendo y seguir eligiéndote todos los días, en las buenas y en las malas, y quiero que tú me sigas eligiendo a mí. Gracias por ser tú y por dejarme ser parte de tu vida.</p>
 
-      <p class="signature">Feliz 3 meses, mi niña hermosa.<br>Te amo y te adoro con todo mi corazón.</p>
+      <p class="signature">Feliz 3 meses, mi niña hermosa.<br>Te amo y te adoro con todo mi corazón. ❤️</p>
     </div>
 
-    <div class="footer-note">— Te amo mucho mucho mucho, con todo mi amor, Joshua —</div>
+    <div class="footer-note">— Con todo mi amor —</div>
   </div>
 </div>
 
 <script>
   /* ===== CAMBIA AQUÍ LA CONTRASEÑA (exactamente 6 números) ===== */
-  const CODE = "111111";
+  const CODE = "280726";
   /* ============================================================= */
 
   const lockScreen = document.getElementById('lockScreen');
@@ -607,6 +704,17 @@
   keypad.addEventListener('click', (e) => {
     const btn = e.target.closest('.key[data-key]');
     if (btn) press(btn.dataset.key);
+  });
+
+  // Carta-pista desplegable
+  const letterWrap = document.getElementById('letterWrap');
+  const letterToggle = document.getElementById('letterToggle');
+  letterToggle.addEventListener('click', () => {
+    const open = letterWrap.classList.toggle('open');
+    letterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      setTimeout(() => letterWrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    }
   });
 
   // También funciona con el teclado físico (computadora)
