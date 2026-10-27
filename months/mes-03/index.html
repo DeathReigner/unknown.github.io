@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#070403">
+<title>Tres meses</title>
+<link rel="icon" type="image/png" href="assets/head.png">
+<link rel="apple-touch-icon" href="assets/head.png">
+<style>
+  :root{
+    --indigo: #070403;
+    --plum: #110a05;
+    --rose: #2e1204;
+    --coral: #6b2a05;
+    --amber: #a34908;
+    --gold: #e07b1c;
+    --cream: #f0dcc4;
+    --cream-dim: #a98a70;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
+
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--indigo);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: var(--cream);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ===================== FONDO: ATARDECER ===================== */
+  #bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(180deg, var(--indigo) 0%, var(--plum) 45%, var(--rose) 75%, var(--coral) 90%, var(--amber) 100%);
+  }
+
+  canvas#embers {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* ===================== FLORES QUE FLORECEN (solo transform + opacity) ===================== */
+  #bloom {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    contain: layout paint;
+    transition: opacity 0.9s ease;
+  }
+  #bloom.show { opacity: 1; }
+
+  .flower {
+    position: absolute;
+    width: var(--sz);
+    height: var(--sz);
+    margin-left: calc(var(--sz) / -2);
+    margin-top: calc(var(--sz) / -2);
+  }
+
+  .spin { position: absolute; inset: 0; }
+  .play .spin { will-change: transform; animation: spinIn 2s cubic-bezier(.16,.8,.3,1) var(--d) both; }
+
+  .petal {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--sz) * 0.2);
+    height: calc(var(--sz) * 0.46);
+    margin-left: calc(var(--sz) * -0.1);
+    margin-top: calc(var(--sz) * -0.46);
+    transform-origin: 50% 100%;
+    transform: rotate(var(--a)) scale(0);
+    opacity: 0;
+    border-radius: 50% 50% 50% 50% / 72% 72% 28% 28%;
+    backface-visibility: hidden;
+  }
+
+  .petal.o {
+    background: linear-gradient(to top, #6b2a05 0%, #c4630f 45%, #e8801f 100%);
+  }
+  .petal.k {
+    background: #070403;
+    border: 1.5px solid #e07b1c;
+  }
+  .petal.in {
+    width: calc(var(--sz) * 0.15);
+    height: calc(var(--sz) * 0.32);
+    margin-left: calc(var(--sz) * -0.075);
+    margin-top: calc(var(--sz) * -0.32);
+  }
+
+  .inv .petal.o { background: #070403; border: 1.5px solid #e07b1c; }
+  .inv .petal.k { background: linear-gradient(to top, #6b2a05 0%, #c4630f 45%, #e8801f 100%); border: 0; }
+
+  .core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--sz) * 0.13);
+    height: calc(var(--sz) * 0.13);
+    margin-left: calc(var(--sz) * -0.065);
+    margin-top: calc(var(--sz) * -0.065);
+    border-radius: 50%;
+    background: #070403;
+    border: 2px solid #e07b1c;
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  .play .petal {
+    animation: petalOpen 1.3s cubic-bezier(.2,.9,.3,1.2) var(--pd) both;
+  }
+  .play .core {
+    animation: coreIn 0.7s cubic-bezier(.2,.9,.3,1.3) var(--cd) both;
+  }
+
+  @keyframes petalOpen {
+    0%   { transform: rotate(var(--a)) scale(0);   opacity: 0; }
+    30%  { opacity: 1; }
+    100% { transform: rotate(var(--a)) scale(1);   opacity: 1; }
+  }
+  @keyframes coreIn {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  @keyframes spinIn {
+    from { transform: rotate(-35deg) scale(0.6); }
+    to   { transform: rotate(0deg)   scale(1); }
+  }
+
+  /* ===================== PANTALLAS ===================== */
+  .screen {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(24px + env(safe-area-inset-left, 0px));
+    padding-right: calc(24px + env(safe-area-inset-right, 0px));
+    text-align: center;
+  }
+
+  #revealScreen {
+    display: none;
+    justify-content: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: calc(50px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ===================== DESBLOQUEO POR CÓDIGO ===================== */
+  .lock-title {
+    font-size: clamp(20px, 5.6vw, 28px);
+    font-style: italic;
+    letter-spacing: 1px;
+    color: var(--cream);
+    text-shadow: 0 2px 16px rgba(10,6,4,0.6);
+    margin-bottom: 8px;
+  }
+
+  .lock-sub {
+    font-size: clamp(12.5px, 3.4vw, 14px);
+    color: var(--cream-dim);
+    max-width: 280px;
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  .dots {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 30px;
+  }
+
+  .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    background: transparent;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .dot.filled {
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(224,123,28,0.85);
+    transform: scale(1.1);
+  }
+
+  .dots.shake { animation: shake 0.45s ease; }
+  .dots.shake .dot { border-color: #ff8a8a; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    width: min(270px, 74vw);
+  }
+
+  .key {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1px solid rgba(224,123,28,0.35);
+    background: rgba(10,6,4,0.35);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .key:hover { border-color: var(--gold); }
+  .key:active { background: rgba(224,123,28,0.28); transform: scale(0.93); }
+  .key.ghost { border-color: transparent; background: transparent; font-size: 18px; color: var(--cream-dim); }
+  .key.empty { visibility: hidden; pointer-events: none; }
+
+  /* ===================== TEXTO REVELADO ===================== */
+  .content-wrap {
+    max-width: 480px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .main-title {
+    font-size: clamp(28px, 8.5vw, 44px);
+    font-weight: bold;
+    color: var(--cream);
+    text-shadow: 0 0 26px rgba(224,123,28,0.5), 0 2px 8px rgba(10,6,4,0.6);
+    margin: 8px 0 4px;
+    letter-spacing: 1px;
+    animation: fadeInUp 1s ease;
+  }
+
+  .subtitle {
+    font-size: clamp(15px, 4vw, 18px);
+    color: var(--gold);
+    margin-bottom: 18px;
+    animation: fadeInUp 1.2s ease;
+  }
+
+  .divider {
+    width: 70px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 12px 0 20px;
+    animation: fadeInUp 1.3s ease;
+  }
+
+  .message-card {
+    background: rgba(10,6,4,0.62);
+    border: 1px solid rgba(224,123,28,0.25);
+    border-radius: 22px;
+    padding: 28px 24px;
+    margin: 6px 0 28px;
+    box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+    animation: fadeInUp 1.5s ease;
+    text-align: left;
+  }
+
+  .message-card p {
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: var(--cream);
+  }
+
+  .message-card p + p { margin-top: 16px; }
+
+  /* Párrafos que aparecen poco a poco al hacer scroll */
+  .message-card p.fade {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+  }
+  .message-card p.fade.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .signature {
+    margin-top: 20px;
+    text-align: right;
+    font-style: italic;
+    font-weight: bold;
+    color: var(--gold);
+  }
+
+  .footer-note {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--cream-dim);
+    animation: fadeInUp 2s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 0; background: transparent; }
+
+  @media (max-height: 640px) {
+    .lock-sub { margin-bottom: 16px; }
+    .dots { margin-bottom: 18px; }
+    .keypad { gap: 10px; width: min(230px, 66vw); }
+    .key { font-size: 21px; }
+  }
+
+
+  /* iPhone en horizontal: título a la izquierda, teclado a la derecha */
+  @media (orientation: landscape) and (max-height: 500px) {
+    #lockScreen {
+      display: grid;
+      grid-template-columns: auto auto;
+      grid-template-rows: 1fr auto auto 1fr;
+      column-gap: 48px;
+      justify-content: center;
+      align-content: center;
+    }
+    #lockScreen .lock-title { grid-column: 1; grid-row: 2; margin-bottom: 6px; }
+    #lockScreen .lock-sub   { grid-column: 1; grid-row: 3; max-width: 250px; margin: 0 auto 16px; }
+    #lockScreen .dots       { grid-column: 1; grid-row: 4; align-self: start; margin: 0 auto; }
+    #lockScreen .keypad {
+      grid-column: 2;
+      grid-row: 1 / 5;
+      align-self: center;
+      width: auto;
+      grid-template-columns: repeat(3, 54px);
+      gap: 8px;
+    }
+    .key { font-size: 20px; }
+  }
+
+  @media (max-width: 380px) {
+    .message-card { padding: 22px 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dots.shake { animation: none; }
+    #bloom { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<canvas id="embers"></canvas>
+<div id="bloom" aria-hidden="true"></div>
+
+<!-- ===================== PANTALLA DE CÓDIGO ===================== -->
+<div class="screen" id="lockScreen">
+  <div class="lock-title">Un último paso</div>
+  <div class="lock-sub">Encuentra el código de 6 números...</div>
+
+  <div class="dots" id="dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+
+  <div class="keypad" id="keypad">
+    <button class="key" data-key="1">1</button>
+    <button class="key" data-key="2">2</button>
+    <button class="key" data-key="3">3</button>
+    <button class="key" data-key="4">4</button>
+    <button class="key" data-key="5">5</button>
+    <button class="key" data-key="6">6</button>
+    <button class="key" data-key="7">7</button>
+    <button class="key" data-key="8">8</button>
+    <button class="key" data-key="9">9</button>
+    <button class="key empty" tabindex="-1" aria-hidden="true"></button>
+    <button class="key" data-key="0">0</button>
+    <button class="key ghost" data-key="del" aria-label="Borrar">⌫</button>
+  </div>
+</div>
+
+<!-- ===================== PANTALLA REVELADA ===================== -->
+<div class="screen" id="revealScreen">
+  <div class="content-wrap">
+    <div class="main-title">Tres meses</div>
+    <div class="subtitle">Feliz día, mi amor</div>
+    <div class="divider"></div>
+
+    <div class="message-card">
+      <p>Hola nuevamente, mi amor.</p>
+
+      <p>Hoy lamentablemente no pude estar contigo. Como te dije hace tiempo, de verdad me hubiera gustado darte flores el mero día, pero hoy no se pudo. Espero de corazón que la próxima sí se pueda.</p>
+
+      <p>No te puedo dar flores físicas, pero busqué la forma de darte unas virtuales. Lamento que este formato se haya repetido ya varias veces; es mi manera de demostrarte una pequeña porción de mi amor.</p>
+
+      <p>Felices 3 meses juntos. Ya son 90 días, 1/4 de año, 2,160 horas, 129,600 minutos o 7,776,000 segundos. Pareciera poco, pero para mí se ha sentido más largo, como si el tiempo hubiera pasado lento, quizá porque cada día te recuerdo y te extraño más y más. Es curioso.</p>
+
+      <p>Este mes fue bastante peculiar, cargado de emociones tanto positivas como negativas. Siento que la erré más que en otros meses: por no saber llevar las cosas de la mejor manera, por no saber qué decirte o cómo hacerlo y, sobre todo, por no pensar bien varias cosas. Eso nos hizo pasar malos ratos, de los que me arrepiento mucho. Sé que te dolieron y hubiera preferido evitarlos.</p>
+
+      <p>Una parte de mí sabe que el "hubiera" no existe. Y aunque existiera, si me ahorrara cada error, tampoco aprendería de ellos. Dicen que la mejor maestra es la experiencia: a veces es muy cabrona y te duele, y otras te sopla la respuesta y te evitas el mal rato. Pero como estudiante, está en mí decidir cómo tomar cada lección.</p>
+
+      <p>Me duele estarla errando y sentir que fallo mucho. Lo que me impulsa a seguir es que, incluso después de un mal rato, sabemos superar las cosas, y lo que más me gusta de nosotros es que siempre nos elegimos, tanto en las buenas como en las malas.</p>
+
+      <p>Sé que mi yo del pasado no sabía lo que hoy sé. Prometo tomar estas experiencias como referencia para aprender y cuidar esta relación, porque de corazón quiero que funcione lo que estamos construyendo.</p>
+
+      <p>Hace poco me preguntaste si le tenía miedo a algo, o alguna fobia, y de broma te dije "miedo a perderte". Fue lo primero que se me ocurrió. A los minutos me senté a pensar por qué lo dije, y no encontré mejor explicación: eres lo más importante en mi vida, y mi mayor miedo de verdad es perderte a ti.</p>
+
+      <p>Por eso hoy te pido perdón. Perdón por mis errores, por las veces en que te traté mal, por las veces en que no te di lo mejor de mí y por las veces en que no supe actuar como debía. No quiero que suene a que voy a equivocarme a propósito, pero te lo digo de corazón: no puedo prometerte que dejaré de equivocarme. Lo que sí te prometo es que lo intentaré lo menos posible y que, cuando pase, buscaré por cielo, mar y tierra enmendar mi error y aprender de él.</p>
+
+      <p>Hay días en que te veo decaída y dices que no te sientes suficiente. De verdad quisiera que, aunque sea un día, pudieras ver a través de mis ojos y ver cómo te veo yo: la mujer que más amo y admiro en este mundo, la más hermosa e inteligente, la más madura y la más profesional. Para mí, eres más que suficiente.</p>
+
+      <p>Eres una mujer increíblemente hermosa, por fuera y por dentro. Eres una mujer fuerte, que aun en los días pesados sigue adelante y no se rinde. Eres una mujer inteligente, que me deja sorprendido con cada cosa que dice y que hace. Eres una mujer cariñosa, que sabe hacerme sentir querido con una palabra, con un mensaje o con un simple detalle. Eres una mujer paciente, que me ha dado tiempo para aprender y que me ha tendido la mano cuando más lo necesitaba. Eres una mujer valiente, honesta, trabajadora y con un corazón enorme. Eres una mujer con sueños, con metas y con un futuro brillante, y me emociona muchísimo la idea de verte alcanzarlos. Eres una mujer que ilumina mis días solo con aparecer en mi pantalla, en mis pensamientos o en mis recuerdos. Eres, sin exagerar, de las mejores cosas que me han pasado en la vida. Y siempre estaré aquí para recordártelo.</p>
+
+      <p>Gracias por estar a mi lado, por acompañarme, por aguantarme y por tenerme paciencia incluso cuando no me la he ganado. Gracias por escucharme cuando no sé cómo explicarme, por perdonarme, por darme otra oportunidad y por no soltarme en los momentos difíciles. Gracias por tus palabras, por tus detalles y por hacerme sentir querido aun a la distancia. Que no te quede duda de que no doy nada por sentado de todo lo que haces por mí.</p>
+
+      <p>Gracias por cada buenos días y cada buenas noches. Gracias por cada mensaje que hace que la distancia se sienta menos grande. Gracias por tus risas, por tus bromas y por compartir conmigo hasta las cosas más tontas. Gracias por interesarte en mi día, en mis metas y en mis preocupaciones. Gracias por creer en mí cuando yo mismo dudo. Gracias por animarme, por cuidarme y por hacerme sentir que no estoy solo. Gracias por ser mi calma en los días de caos y mi motivo para sonreír en los días más oscuros. Gracias por enseñarme, sin darte cuenta, lo que es querer de verdad. Y gracias por elegirme, una y otra vez, incluso cuando no soy fácil de elegir.</p>
+
+      <p>Me encanta tu forma de ser. Me encanta tu sonrisa, tu forma de hablar, tu forma de reír, y la verdad me encanta todo de ti: hasta cómo te paras, que lo haces muy muy bonito, y hasta cómo te molestas cuando algo no te sale bien. Me encanta escucharte contarme cualquier cosa, por pequeña que sea, y me encanta que me hagas parte de tu mundo. Me encantan nuestras conversaciones largas, nuestros silencios tranquilos y esas tonterías que solo tú y yo entendemos. Me encanta saber que existe alguien como tú y que, de todas las personas del mundo, tú me regalaste tu cariño.</p>
+
+      <p>Me siento muy afortunado de ser alguien importante en tu vida, un ancla para ti en tus tormentas. Ya me has dicho que lo soy, y estoy muy agradecido, y quiero seguir siéndolo todos los días. Quiero ser ese lugar al que puedas llegar cuando todo se sienta pesado, y saber que aquí hay alguien que te escucha, que te abraza (aunque sea con palabras) y que no se va. Quiero celebrar contigo tus logros, los grandes y los pequeños, y recordarte en los días difíciles lo mucho que vales.</p>
+
+      <p>Te amo mucho. Sé que apenas son tres meses y que nos falta mucho por vivir, pero hoy, mirando hacia atrás, no cambiaría ni uno solo de estos días, ni siquiera los difíciles, porque todos me trajeron hasta aquí, contigo.</p>
+
+      <p>Quiero seguir aprendiendo, seguir creciendo y seguir eligiéndote todos los días, en las buenas y en las malas, y quiero que tú me sigas eligiendo a mí. Gracias por ser tú y por dejarme ser parte de tu vida.</p>
+
+      <p class="signature">Feliz 3 meses, mi niña hermosa.<br>Te amo y te adoro con todo mi corazón.</p>
+    </div>
+
+    <div class="footer-note">— Te amo mucho mucho mucho, con todo mi amor, Joshua —</div>
+  </div>
+</div>
+
+<script>
+  /* ===== CAMBIA AQUÍ LA CONTRASEÑA (exactamente 6 números) ===== */
+  const CODE = "111111";
+  /* ============================================================= */
+
+  const lockScreen = document.getElementById('lockScreen');
+  const revealScreen = document.getElementById('revealScreen');
+  const dotsEl = document.getElementById('dots');
+  const dotEls = Array.from(dotsEl.querySelectorAll('.dot'));
+  const keypad = document.getElementById('keypad');
+
+  let entered = "";
+  let busy = false;
+
+  function render() {
+    dotEls.forEach((d, i) => d.classList.toggle('filled', i < entered.length));
+  }
+
+  function press(k) {
+    if (busy) return;
+    if (k === 'del') {
+      entered = entered.slice(0, -1);
+    } else if (entered.length < CODE.length) {
+      entered += k;
+    }
+    render();
+    if (entered.length === CODE.length) check();
+  }
+
+  function check() {
+    busy = true;
+    if (entered === CODE) {
+      setTimeout(unlock, 250);
+    } else {
+      setTimeout(() => {
+        dotsEl.classList.remove('shake');
+        void dotsEl.offsetWidth;
+        dotsEl.classList.add('shake');
+        if (navigator.vibrate) { try { navigator.vibrate(120); } catch (e) {} }
+        setTimeout(() => {
+          dotsEl.classList.remove('shake');
+          entered = "";
+          render();
+          busy = false;
+        }, 480);
+      }, 200);
+    }
+  }
+
+  /* ===== Flores que florecen (se construyen una vez, se animan al desbloquear) ===== */
+  const bloom = document.getElementById('bloom');
+
+  // [left %, top %, tamaño base px, retraso s, invertida]
+  const FLOWERS = [
+    [50, 44, 180, 0.00, false],
+    [20, 24, 130, 0.30, true ],
+    [78, 20, 150, 0.50, false],
+    [16, 66, 150, 0.70, false],
+    [82, 62, 135, 0.90, true ],
+    [36, 84, 140, 1.10, true ],
+    [74, 86, 125, 1.25, false]
+  ];
+
+  function buildBloom() {
+    const frag = document.createDocumentFragment();
+    FLOWERS.forEach(([x, y, base, delay, inv]) => {
+      const sz = Math.min(base, window.innerWidth * 0.42);
+      const f = document.createElement('div');
+      f.className = 'flower' + (inv ? ' inv' : '');
+      f.style.left = x + '%';
+      f.style.top = y + '%';
+      f.style.setProperty('--sz', sz + 'px');
+      f.style.setProperty('--d', delay + 's');
+
+      const spin = document.createElement('div');
+      spin.className = 'spin';
+
+      let html = '';
+      for (let i = 0; i < 8; i++) {                       // anillo exterior
+        html += '<i class="petal o" style="--a:' + (i * 45) + 'deg;--pd:' + (delay + i * 0.05).toFixed(2) + 's"></i>';
+      }
+      for (let i = 0; i < 8; i++) {                       // anillo interior, desfasado
+        html += '<i class="petal k in" style="--a:' + (i * 45 + 22.5) + 'deg;--pd:' + (delay + 0.4 + i * 0.05).toFixed(2) + 's"></i>';
+      }
+      html += '<i class="core" style="--cd:' + (delay + 0.9).toFixed(2) + 's"></i>';
+      spin.innerHTML = html;
+
+      f.appendChild(spin);
+      frag.appendChild(f);
+    });
+    bloom.appendChild(frag);
+  }
+
+  function showReveal() {
+    lockScreen.style.display = 'none';
+    revealScreen.style.display = 'flex';
+    revealScreen.style.animation = 'fadeInUp 0.8s ease';
+    setupParagraphReveal();
+  }
+
+  // Cada párrafo aparece suavemente cuando ella llega a él al bajar
+  function setupParagraphReveal() {
+    const paras = Array.from(document.querySelectorAll('.message-card p'));
+    if (reduceMotion || !('IntersectionObserver' in window)) return;
+
+    paras.forEach(p => p.classList.add('fade'));
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { root: revealScreen, threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+
+    paras.forEach(p => io.observe(p));
+  }
+
+  function unlock() {
+    lockScreen.style.transition = 'opacity 0.5s ease';
+    lockScreen.style.opacity = '0';
+
+    // Con "reducir movimiento" activado se omite la animación de flores
+    if (reduceMotion) {
+      setTimeout(showReveal, 500);
+      return;
+    }
+
+    buildBloom();
+    setTimeout(() => {
+      lockScreen.style.display = 'none';
+      bloom.classList.add('show', 'play');
+
+      // Las flores terminan de abrir y se desvanecen suavemente hacia el texto
+      setTimeout(() => {
+        showReveal();
+        bloom.classList.remove('show');
+        setTimeout(() => bloom.remove(), 1000);
+      }, 3300);
+    }, 500);
+  }
+
+  keypad.addEventListener('click', (e) => {
+    const btn = e.target.closest('.key[data-key]');
+    if (btn) press(btn.dataset.key);
+  });
+
+  // También funciona con el teclado físico (computadora)
+  document.addEventListener('keydown', (e) => {
+    if (lockScreen.style.display === 'none') return;
+    if (/^[0-9]$/.test(e.key)) press(e.key);
+    else if (e.key === 'Backspace') press('del');
+  });
+
+  /* ================== BRASAS / LUCIÉRNAGAS (CANVAS) ================== */
+  const canvas = document.getElementById('embers');
+  const ctx = canvas.getContext('2d');
+  let w, h, motes, dpr = 1;
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = window.innerWidth;
+    h = window.innerHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function createMotes() {
+    motes = [];
+    const count = Math.min(34, Math.floor((w * h) / 20000));
+    for (let i = 0; i < count; i++) {
+      motes.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.8 + 0.6,
+        vy: -(Math.random() * 0.35 + 0.08),
+        vx: (Math.random() - 0.5) * 0.25,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.002 + 0.0008
+      });
+    }
+  }
+
+  // Resplandor pre-dibujado una sola vez (mucho más ligero que shadowBlur en cada cuadro)
+  const glow = document.createElement('canvas');
+  glow.width = glow.height = 32;
+  (function () {
+    const g = glow.getContext('2d');
+    const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+    grad.addColorStop(0,   'rgba(255,170,70,1)');
+    grad.addColorStop(0.3, 'rgba(224,123,28,0.55)');
+    grad.addColorStop(1,   'rgba(224,123,28,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 32, 32);
+  })();
+
+  // En iPhone "resize" se dispara al subir/bajar la barra de Safari: solo se
+  // regeneran las brasas si cambia el ancho (girar el teléfono).
+  let lastW = window.innerWidth;
+  window.addEventListener('resize', () => {
+    const widthChanged = window.innerWidth !== lastW;
+    lastW = window.innerWidth;
+    resize();
+    if (widthChanged) createMotes();
+  });
+  resize();
+  createMotes();
+
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function draw(t) {
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < motes.length; i++) {
+      const m = motes[i];
+      const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * m.speed + m.phase));
+      const d = m.r * 6;
+      ctx.globalAlpha = a;
+      ctx.drawImage(glow, m.x - d / 2, m.y - d / 2, d, d);
+      if (!reduceMotion) {
+        m.x += m.vx + Math.sin(t * 0.0005 + m.phase) * 0.12;
+        m.y += m.vy;
+        if (m.y < -10) { m.y = h + 10; m.x = Math.random() * w; }
+      }
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+</script>
+
+</body>
+</html>
